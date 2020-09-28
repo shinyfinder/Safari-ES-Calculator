@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 
 <head>
   <title>
@@ -631,7 +631,8 @@
 
 
       // fill the remaining encounter slots
-      var ESout = fillES(ESnew, ES, comboMon, blockMonIndexArray, combinationIndicesOn);
+      var ESout = fillES(ESnew, ES, comboMon, blockMonIndexArray, combinationIndicesOn, combinationIndices);
+      
 
       // create array of slot numbers
       var slotNum = []; var i;
@@ -731,7 +732,7 @@
  function activeBlockMonIndex(scoreIndex, score, indexArray) {
   // scoreIndex: which of blocks are active based on user score
   // score: indices of block type in blockScoreES
-  // indexArray: array on indicies with all activated block mons
+  // indexArray: array of indicies with all activated block mons
   
   var i; var blockScoreIndex;
   for (i = 0; i < scoreIndex.length; i++) {
@@ -744,78 +745,40 @@
 
 
 
- function fillES( blockMons, defaultMons, comboMons, scoreIndex, comboIndex ) {
-  
-  // determine the priorities
-  var blockScoreIndex; var i; var allMons = []; var j; var comboFlag;
+ function fillES( blockMons, defaultMons, comboMons, scoreIndex, comboIndex, comboLoc ) {
 
-  comboFlag = 0;
+ 	// blockMons: names/lvl of Pokemon turned on by blocks
+ 	// defaultMons: names/lvl of default Pokemon slots
+ 	// comboMons: names/lvl of combo Pokemon turned on by blocks
+ 	// scoreIndex: index of block score in blockES array
+ 	// comboIndex: index of "combo" turned on in blockES array
+ 	// comboLoc: location of "combo" in blockES array
+ 	// peak, night, land, 28, 56, 35, 5
 
-  for (i = 0; i < blockMons.length + comboMons.length; i++) {
-    if ( i >= blockMons.length) {
-      blockScoreIndex = 50;
-    } else {
-      blockScoreIndex = scoreIndex[i-comboFlag];
-    }
+ 	
+ 	// loop through the blockMons turned on
+ 	for (var i = 0; i < blockMons.length; i++) {
+ 		if (!comboLoc || (scoreIndex[i] < comboLoc[0])) {
+ 			defaultMons.splice(scoreIndex[i]/2, 1, blockMons[i]);
+ 		} else if (scoreIndex[i] > comboLoc[0] && (scoreIndex[i] < comboLoc[1] || comboLoc.length == 1)) {
+ 			defaultMons.splice(Math.floor((scoreIndex[i]-3)/2), 1, blockMons[i]);
+ 		} else if (comboLoc.length == 2 && scoreIndex[i]> comboLoc[1]) {
+ 			defaultMons.splice(Math.floor((scoreIndex[i]-6)/2), 1, blockMons[i]);
+ 		}
+ 	}
 
-    if (blockScoreIndex < comboIndex[comboFlag] && comboMons.length > 0) {
-      allMons.push(blockMons[i-comboFlag]);
-    } else if (blockScoreIndex > comboIndex[comboFlag] && comboFlag <= comboMons.length && comboMons.length > 0) {
-      allMons.push(comboMons[comboFlag]);
-      comboFlag += 1;
-    } else {
-      allMons.push(blockMons[i-comboFlag]);
-    }
-  }
+ 	// loop through the combo mons
+ 	if (comboMons) {
+ 		for (var i = 0; i < comboMons.length; i++) {
+ 			if (comboLoc.length == 1 || comboIndex[i] == comboLoc[0]) {
+ 				defaultMons.splice(Math.floor((comboIndex[i]-1)/2), 1, comboMons[i]);
+ 			} else if (comboLoc.length == 2 && comboIndex[i] == comboLoc[1]) {
+ 				defaultMons.splice(Math.floor((comboIndex[i]-1-3)/2), 1, comboMons[i]);
+ 			}
+ 		}
+ 	}
 
-/*
-  for (i = 0; i < blockMons.length + comboMons.length; i++) {
-    if (comboIndex.length > 0) {
-      for (j = 0; j < comboIndex.length; j++) {
-        if (i >= blockMons.length) {
-          blockScoreIndex = 50; // set to high number to force using comboIndex if i > length of blockMons
-        } else {
-          blockScoreIndex = scoreIndex[i];
-        };
-        
-        if (blockScoreIndex < comboIndex[j] && comboMons.length > 0) {
-          allMons.push(blockMons[i]);
-        } else if (blockScoreIndex > comboIndex[j] && comboFlag != comboIndex.length && comboMons.length > 0) {
-          allMons.push(comboMons[j]);
-          comboFlag += 1;
-        } else {
-          allMons.push(blockMons[i-comboFlag]);
-        }
-      }
-    } else {
-        blockScoreIndex = scoreIndex[i];
-        if (blockScoreIndex < comboIndex[j] && comboMons.length > 0) {
-          allMons.push(blockMons[i]);
-        } else if (blockScoreIndex > comboIndex[j] && comboFlag != comboIndex.length && comboMons.length > 0) {
-          allMons.push(comboMons[j]);
-          comboFlag += 1;
-        } else {
-          allMons.push(blockMons[i-comboFlag]);
-        }
-      }
-    }
-
-    */
-  // determine the length of the current ES array to determine starting index
-  if (allMons[0] == undefined) {
-    var numMons = 0;
-    allMons = [];
-  } else {
-    var numMons = allMons.length;  
-  };
-  
-
- 
-  // build the rest of the array
-  for (i = 0; i < defaultMons.length - numMons; i++) {
-    allMons.push(defaultMons[i]);
-  };
-  return allMons;
+  return defaultMons;
  };
 
   </script>
@@ -832,6 +795,7 @@
 <body>
 <h2>What this does</h2>
 <p>This calculator is a tool to help determine the encounter slots for the HeartGold &amp; SoulSilver Safari Zone. Simply enter in the information for each field and click Calculate to determine which Pok&eacute;mon occupy which encounter slots. The encounter slot tables and time for each block upgrade can be found on the <a href="https://sites.google.com/site/pokemonslots/gen-iv/safari-zone" target="_blank">Safari Zone slot webpage</a>. Enjoy!</p>
+<p> ~ shiny finder</p>
 
 <h2>Terms</h2>
 <dl>
@@ -842,14 +806,12 @@
   <strong><dt>Encounter Method</dt></strong>
     <dd>How you encounter the Pok&eacute;mon. The options are in grass (land), surfing (water), or fishing (old/good/super rod).</dd>
   <strong><dt>Block Scores</dt></strong>
-    <dd>The <em>total</em> value of the block types in your area. Each block "levels up" after a certain amount of time of being placed in the area, allowing it to count as multiple blocks. See the "Block Scores" tab on the <a href="https://sites.google.com/site/pokemonslots/gen-iv/safari-zone" target="_blank">encounter slots</a> for these time periods.</dd>
+    <dd>The <em>total</em> value of the block types in your area. Each block "levels up" after a certain amount of time of being placed in the area, allowing it to count as multiple blocks. See the "Block Scores" tab on the <a href="https://sites.google.com/site/pokemonslots/gen-iv/safari-zone" target="_blank">encouter slots</a> for these time periods.</dd>
   <strong><dt>Slot Number</dt></strong>
     <dd>The encounter slot number that is occupied. These values correspond to those in the RNG Reporter/PPRNG for each frame.</dd>
   <strong><dt>lvl</dt></strong>
     <dd>The level of the Pok&eacute;mon that will appear.</dd>
 </dl>
-    <h3>Credits</h3>
-  <p>Questions/comments/concerns can be directed to shiny finder on <a href="https://www.smogon.com/forums/members/shiny-finder.206479/" target="_blank">Smogon</a> (preferable) or as an issue on <a href="https://github.com/shinyfinder" target="_blank">GitHub</a>.</p>
 <hr />
 <h2>The Calculator</h2>
 <form>
@@ -925,6 +887,5 @@
     <td id="ESResults"></td>
   </tr>
 </table>
-  
 </body>
 </html>
